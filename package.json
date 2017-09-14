@@ -1,0 +1,29 @@
+{
+  "name": "asana-project-api",
+  "version": "1.0.0",
+  "description": "demo project",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node bootstrap.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shivam8800/asana-project-API.git"
+  },
+  "keywords": [
+    "kuch",
+    "ni"
+  ],
+  "author": "aslam and shivam",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/shivam8800/asana-project-API/issues"
+  },
+  "homepage": "https://github.com/shivam8800/asana-project-API#readme",
+  "dependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-es2015": "^6.24.1",
+    "hapi": "^16.6.0"
+  }
+}
