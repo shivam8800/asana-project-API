@@ -1,76 +1,64 @@
 
+
 exports.up = function(knex, Promise) {
+	return knex
+		.schema
+		.createTable('users', function( usersTable ){
+			// primary key
+			usersTable.increments('id').primary();
+			//data
+			usersTable.string( 'name', 50 ).notNullable();
+			usersTable.string( 'username', 50 ).notNullable().unique();
+            usersTable.string( 'email', 250 ).notNullable().unique();
+            usersTable.string( 'password', 128 ).notNullable();
+            usersTable.boolean( 'isAdmin' ).notNullable().defaultTo( false );
+		})
+		.createTable('tasks', function( tasksTable ){
+			// primary key
+			tasksTable.increments('id').primary();
+			tasksTable.integer( 'userId', 20).unsigned().references( 'id' ).inTable('users');
+			//data
+			tasksTable.text( 'taskText').notNullable();
+			//data timestamp
+			tasksTable.timestamp( 'created_at' ).notNullable();
+			tasksTable.date( 'dueDate' ).notNullable();
+		})
+		.createTable( 'collaborator', function( collaborat ){
+			//primary key
+			collaborat.increments('id').primary();
+			//foreignkey connection
+			collaborat.integer( 'userId1', 20).unsigned().references( 'id' ).inTable('users');
+			collaborat.integer( 'taskId1', 20).unsigned().references( 'id' ).inTable('tasks');
+
+		})
+		.createTable( 'tasksComments', function( taskComment){
+			//primary key
+			taskComment.increments('id').primary();
+			//foreignkey connection
+			taskComment.integer( 'taskId', 20).unsigned().references( 'id' ).inTable('collaborator');
+			//data
+			taskComment.text( 'commentText').notNullable();
+			//date
+			taskComment.timestamp( 'created_at' ).notNullable();
+		})
+		.createTable( 'nestedComment', function( nestedcomment){
+			//primary key
+			nestedcomment.string('id').primary();
+			nestedcomment.integer( 'taskCommentId', 20).unsigned().references( 'id' ).inTable('tasksComments');
+			//data
+			nestedcomment.text( 'nestedcommentText').notNullable();
+			//date
+			nestedcomment.timestamp( 'created_at' ).notNullable();
+		});
   
-  return knex
-	  .schema
-	  .createTable('users', function( usersTable ){
-
-	  	//primary key
-	  	usersTable.increments();
-
-	  	//data
-	  	usersTable.string('username', 50).notNullable().unique();
-	  	usersTable.string('email', 250).notNullable().unique();
-	  	usersTable.string('password', 150).notNullable().unique();
-
-	  })
-	  .createTable('tasks', function( tasksTable ){
-
-	  	//primary key
-	  	tasksTable.increments();
-	  	//foreignkey connections
-	  	tasksTable.string('userId').references('username').inTable('users');
-
-	  	//data
-	  	tasksTable.string('taskText', 1000).notNullable();
-	  	//date timestamp
-	  	tasksTable.timestamp('createdAt').notNullable();
-	  	tasksTable.date('dueDate').notNullable();
-
-	  })
-	  .createTable('collaborator', function( collaborate ){
-
-	  	//primary key
-	  	collaborate.increments();
-	  	//foreignkey connection
-	  	collaborate.string('userId1', 50).references('email').inTable('users');
-	  	collaborate.string('taskId1', 50).references('userId').inTable('tasks');
-
-	  })
-	  .createTable('taskscomments', function( tasksComments ){
-
-	  	//primary key
-	  	tasksComments.increments();
-	  	//foreignkey connection
-	  	tasksComments.string('taskId', 50).references('userId').inTable('tasks');
-
-	  	//data
-	  	tasksComments.string('commentText', 1000).notNullable();
-	  	//date
-	  	tasksComments.timestamp('createdAt').notNullable();
-
-	  })
-	  .createTable('nestedcomments', function( nestedComments ){
-
-	  	//primary key
-	  	nestedComments.increments();
-	  	//foreignkey connection
-	  	nestedComments.string('taskCommentId', 50).references('taskId').inTable('taskscomments');
-
-	  	//data
-	  	nestedComments.string('nestedCommentsText', 1000).notNullable();
-	  	//date
-	  	nestedComments.timestamp('createdAt').notNullable();
-
-	  });
 };
 
 exports.down = function(knex, Promise) {
-  	return knex
-  	.schema
-  		.dropTableIfExists('nestedcomments')
-  		.dropTableIfExists('taskscomments')
-  		.dropTableIfExists('collaborator')
-  		.dropTableIfExists('tasks')
-  		.dropTableIfExists('users');
+	return knex
+        .schema
+        	.dropTableIfExists( 'nestedComment' )
+        	.dropTableIfExists( 'tasksComments' )
+        	.dropTableIfExists( 'collaborator' )
+            .dropTableIfExists( 'tasks' )
+            .dropTableIfExists( 'users' );
 };
