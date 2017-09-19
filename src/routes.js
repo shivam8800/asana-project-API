@@ -1,10 +1,11 @@
 import knex from './knex';
 import jwt from 'jsonwebtoken';
-import GUID from 'node-uuid'
+// import GUID from 'node-uuid'
 
 
 // The idea here is simple: export an array which can be then iterated over and each route can be attached. 
 const routes = [
+    // for authenticate and get token for a particular user
     {
         method: 'POST',
         path: '/auth',
@@ -51,6 +52,87 @@ const routes = [
 
         }
     },
+
+    // create new user
+    {
+        path:'/user',
+        method:'POST',
+        handler: ( request, reply ) =>{
+            const insertOperation = knex('users').insert({
+                name:request.payload.name,
+                username:request.payload.username,
+                email:request.payload.email,
+                password:request.payload.password,
+                isAdmin:request.payload.isAdmin,
+            }).then((res) => {
+                reply({
+                    data:res,
+                    message: "successfully inserted !"
+                });
+            }).catch((err) => {
+                reply("server-side error!");
+            });
+        }
+    },
+    // update the details of users
+    {
+      path:'/user/{userid}',
+      method:'PUT',
+      config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre: [
+                {
+                    method: (request, reply) => {
+                        const {userid} = request.params;
+                        // console.log(userid);
+                        const getOperation = knex('users').where({
+                            id:userid,
+                        }).select('name').then(([result]) =>{
+                            if (!result) {
+                                reply({
+                                    error: true,
+                                    errMessage: `the user with id ${id} was not found`
+                                }).takeover();
+                            }
+                            return reply.continue();
+                        });
+                    }
+                }
+            ],
+        },
+      handler: (request, reply) =>{
+        const {userid} = request.params;
+        // console.log(userid);
+        // console.log(request.params);
+        // console.log(request.payload);
+
+        const insertOperation = knex('users').where({
+            
+                id:userid,
+            
+            }).update({
+
+                name:request.payload.name,
+                username:request.payload.username,
+                email:request.payload.email,
+                password:request.payload.password,
+                isAdmin:request.payload.isAdmin,
+            
+            }).then((res) => {
+            
+                reply({
+                    data:request.payload,
+                    message:"successfully updated bird!"
+                });
+            
+            }).catch((err) =>{
+                reply("server side error!");
+            });
+      }  
+    },
+    // get all tasks of particular user 
     {
         method: 'GET',
         path: '/usertask/{id}',
@@ -75,6 +157,7 @@ const routes = [
             });
         }
     },
+    // post a task
     {
         path: '/tasks',
         method: 'POST',
@@ -89,7 +172,7 @@ const routes = [
             const { task } = request.payload;
             // console.log(task);
             
-            const guid = GUID.v4();
+            // const guid = GUID.v4();
             // console.log(guid);
 
             const insertOperation = knex('tasks').insert({
@@ -107,6 +190,7 @@ const routes = [
             });
         }
     },
+    // for update task
     {
         path:'/task/{id}',
         method:'PUT',
@@ -156,7 +240,6 @@ const routes = [
             }).catch((err) =>{
                 reply("server side error!");
             });
-
         }
     }
 ]
