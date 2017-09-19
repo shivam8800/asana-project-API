@@ -1,23 +1,23 @@
 module.exports = {
 
-    development: {
+	    development: {
 
-        migrations: { tableName: 'knex_migrations' },
-        seeds: { tableName: './seeds' },
+		            migrations: { tableName: 'knex_migrations' },
+		            seeds: { tableName: './seeds' },
 
-        client: 'mysql',
-        connection: {
+		            client: 'mysql',
+		            connection: {
 
-            host: 'localhost',
+				                host: 'localhost',
 
-            user: 'root',
-            password: 'aslam@desusa',
+				                user: 'root',
+				                password: 'shivam@jaancrush',
 
-            database: 'asanaproject',
-            charset: 'utf8',
+				                database: 'asana',
+				                charset: 'utf8',
 
-        }
+				            }
 
-    }
+		        }
 
 };
