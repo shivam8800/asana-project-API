@@ -8,9 +8,9 @@ server.connection({
 
 server.route({
 	method: 'GET',
-	path: '/hello',
+	path: '/hello/{userName}',
 	handler: ( request, reply) =>{
-		reply('Hello World!');
+	reply('Hello World '+ request.params.userName + '!');
 	}
 });
 
