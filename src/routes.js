@@ -1,6 +1,5 @@
 import knex from './knex';
 import jwt from 'jsonwebtoken';
-// import GUID from 'node-uuid'
 
 
 // The idea here is simple: export an array which can be then iterated over and each route can be attached. 
@@ -55,7 +54,7 @@ const routes = [
 
     // create new user
     {
-        path:'/user',
+        path:'/createuser',
         method:'POST',
         handler: ( request, reply ) =>{
             const insertOperation = knex('users').insert({
@@ -76,7 +75,7 @@ const routes = [
     },
     // update the details of users
     {
-      path:'/user/{userid}',
+      path:'/updateuser/{userid}',
       method:'PUT',
       config: {
             auth: {
@@ -132,10 +131,61 @@ const routes = [
             });
       }  
     },
+    // delete a user
+    {
+        method: 'DELETE',
+        path: '/deleteuser/{id}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre: [
+                {
+                    method: (request, reply) => {
+                        const {id} = request.params;
+                        // console.log(userid);
+                        const getOperation = knex('users').where({
+                            id:id,
+                        }).select('name').then(([result]) =>{
+                            if (!result) {
+                                reply({
+                                    error: true,
+                                    errMessage: `the user with id ${id} was not found`
+                                }).takeover();
+                            }
+                            return reply.continue();
+                        });
+                    }
+                }
+            ],
+        },
+      
+        handler: function (request, reply) {
+            const {id}=request.params;
+
+            const deleteOperation = knex('users').where({
+                
+                    id:id,
+                
+                }).delete({
+                    id:id
+                     
+                }).then((res) => {
+                
+                    reply({
+                        message:"successfully deleted user!"
+                    });
+                
+                }).catch((err) =>{
+                    reply("server side error!");
+                });
+
+        }
+    },
     // get all tasks of particular user 
     {
         method: 'GET',
-        path: '/usertask/{id}',
+        path: '/getusertasks/{id}',
         handler: function(request, reply) {
             const { id } = request.params
             const getOperation = knex('tasks').where({
@@ -159,7 +209,7 @@ const routes = [
     },
     // post a task
     {
-        path: '/tasks',
+        path: '/createtask',
         method: 'POST',
         config: {
             auth:{
@@ -192,7 +242,7 @@ const routes = [
     },
     // for update task
     {
-        path:'/task/{id}',
+        path:'/updatetask/{id}',
         method:'PUT',
         config: {
             auth: {
@@ -208,7 +258,7 @@ const routes = [
                             if (!result) {
                                 reply({
                                     error: true,
-                                    errMessage: `the bird with id ${id} was not found`
+                                    errMessage: `the task with id ${id} was not found`
                                 }).takeover();
                             }
                             return reply.continue();
@@ -241,6 +291,96 @@ const routes = [
                 reply("server side error!");
             });
         }
+    },
+    // delete particular task of a user
+    {
+        method: 'DELETE',
+        path: '/deletetask/{userid}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre: [
+                {
+                    method: (request, reply) => {
+                        const {userid} = request.params;
+                        const getOperation = knex('tasks').where({
+                            id:userid,
+                        }).select('taskText').then(([result]) =>{
+                            if (!result) {
+                                reply({
+                                    error: true,
+                                    errMessage: `the task with id ${id} was not found`
+                                }).takeover();
+                            }
+                            return reply.continue();
+                        });
+                    }
+                }
+            ],
+        },
+        handler: function (request, reply) {
+            const {userid}=request.params;
+
+            const deleteOperation = knex('tasks').where({
+                
+                    id:userid,
+                
+                }).delete({
+                    id:userid
+                     
+                }).then((res) => {
+                
+                    reply({
+                        message:"successfully deleted task!"
+                    });
+                
+                }).catch((err) =>{
+                    reply("server side error!");
+                });
+
+        }
+    },
+
+    // task assign to others
+    {
+        method:'POST',
+        path:'/task/assignto/others/{taskid}',
+        config: {
+            auth:{
+                strategy: 'token',
+            }
+        },
+        handler: function(request, reply){
+            var status;
+            // console.log(request.payload.username);
+            // for check assigned user in database
+            const getOperation = knex('users').where({
+                username:request.payload.username,
+            }).select('id').then((result) => {
+                if (!result || result.length === 0) {
+                    reply({
+                        status:"assigned user has not found!"
+                    })
+                }
+                // console.log(result[0].id);
+                // for insert data in database
+                const insertOperation = knex('collaborator').insert({
+                    userId1:request.auth.credentials.userid,
+                    taskId1:request.params.taskid,
+                    assignto:result[0].id,
+                }).then((res) =>{
+                    reply({
+                        data:res,
+                        message:"inserted successfully!"
+                    });
+                }).catch((err) =>{
+                    reply("server side error");
+                });
+
+            });
+        }
     }
+
 ]
 export default routes;

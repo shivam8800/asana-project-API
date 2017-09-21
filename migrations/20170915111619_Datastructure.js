@@ -29,6 +29,7 @@ exports.up = function(knex, Promise) {
 			//foreignkey connection
 			collaborat.integer( 'userId1', 20).unsigned().references( 'id' ).inTable('users');
 			collaborat.integer( 'taskId1', 20).unsigned().references( 'id' ).inTable('tasks');
+			collaborat.integer( 'assignto', 20).unsigned().references( 'id' ).inTable('users');
 
 		})
 		.createTable( 'tasksComments', function( taskComment){
