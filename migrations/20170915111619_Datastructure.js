@@ -44,7 +44,7 @@ exports.up = function(knex, Promise) {
 		})
 		.createTable( 'nestedComment', function( nestedcomment){
 			//primary key
-			nestedcomment.string('id').primary();
+			nestedcomment.increments('id').primary();
 			nestedcomment.integer( 'taskCommentId', 20).unsigned().references( 'id' ).inTable('tasksComments');
 			//data
 			nestedcomment.text( 'nestedcommentText').notNullable();
