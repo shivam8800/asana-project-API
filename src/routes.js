@@ -341,11 +341,11 @@ const routes = [
 
         }
     },
-
+// >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>all routes replated to collaborator table >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
     // task assign to others
     {
         method:'POST',
-        path:'/task/assignto/others/{taskid}',
+        path:'/post/task/assignto/others/{taskid}',
         config: {
             auth:{
                 strategy: 'token',
@@ -380,7 +380,180 @@ const routes = [
 
             });
         }
-    }
+    },
+    // get task which would assgin to others    
+    {
+        method:'GET',
+        path:'/get/task/atoutboxof/jisne/task/assgin/kiyahai/{userid}',
+        config:{
+            auth:{
+                strategy:'token'
+            }
+        },
+        handler: (request, reply) =>{
+            // console.log(request.params);
+            const getOperation = knex('collaborator').join('tasks', "collaborator.userId1", '=', 'tasks.id').where({
+                userId1:request.params.userid,
+            }).select('tasks.userId', 'tasks.taskText','tasks.created_at','tasks.dueDate').then((result) =>{
+                if(!result){
+                    errMessage: `invalid userid`
+                }
+                reply({
+                    data:result
+                });
+            }).catch((err) =>{
+                reply("server-side error!");
+            })
+        }
+    },
+    // get task which would reciev by second user  
+    {
+        method:'GET',
+        path:'/get/task/atinboxof/jisko/task/assgin/kiyahai/{userid}',
+        config:{
+            auth:{
+                strategy:'token'
+            }
+        },
+        handler: (request, reply) =>{
+            // console.log(request.params);
+            const getOperation = knex('collaborator').join('tasks', "collaborator.userId1", '=', 'tasks.id').where({
+                assignto:request.params.userid,
+            }).select('tasks.userId', 'tasks.taskText','tasks.created_at','tasks.dueDate').then((result) =>{
+                if(!result){
+                    errMessage: `invalid userid`
+                }
+                reply({
+                    data:result
+                });
+            }).catch((err) =>{
+                reply("server-side error!");
+            })
+        }
+    },
+    {
+        method:'PUT',
+        path:'/update/task/assignto/others/{taskid}',
+        config: {
+            auth:{
+                strategy: 'token',
+            },
+            pre: [
+                {
+                    method: (request, reply) => {
+                        // console.log(request.params.taskid);
+                        const getOperation = knex('collaborator').where({
+                            taskId1:request.params.taskid,
+                        }).select('taskId1').then(([result]) =>{
+                            if (!result) {
+                                reply({
+                                    error: true,
+                                    errMessage: `the task with id ${id} was not found`
+                                }).takeover();
+                            }
+                            else {
+                                const checkRightToEdit = knex('collaborator').where({
+                                    userId1:request.auth.credentials.userid,
+                                }).select('taskId1').then((result) =>{
+                                    if (!result) {
+                                        reply({
+                                            error: true,
+                                            errMessage: 'the user has no right to edit task because he did not assign task!'
+                                        }).takeover();
+                                    }
+                                    else{
+                                        return reply.continue();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            ],
+        },
+        handler: function(request, reply){
+            const insertOperation = knex('tasks').where({
+            
+                id:request.params.taskid,
+            
+            }).update({
+                taskText:request.payload.taskText,
+                dueDate:request.payload.dueDate
+            }).then((res) => {
+                reply({
+                    data:request.payload,
+                    message:"successfully updated bird!"
+                });
+            
+            }).catch((err) =>{
+                reply("server side error!");
+            });
+        }
+    },
+    // delete particular task of a user
+    {
+        method: 'DELETE',
+        path: '/delete/task/assignto/others/{taskid}',
+        config: {
+            auth:{
+                strategy: 'token',
+            },
+            pre: [
+                {
+                    method: (request, reply) => {
+                        // console.log(request.params.taskid);
+                        const getOperation = knex('collaborator').where({
+                            taskId1:request.params.taskid,
+                        }).select('taskId1').then(([result]) =>{
+                            if (!result) {
+                                reply({
+                                    error: true,
+                                    errMessage: `the task with id ${id} was not found`
+                                }).takeover();
+                            }
+                            else {
+                                const checkRightToEdit = knex('collaborator').where({
+                                    userId1:request.auth.credentials.userid,
+                                }).select('taskId1').then((result) =>{
+                                    if (!result) {
+                                        reply({
+                                            error: true,
+                                            errMessage: 'the user has no right to edit task because he did not assign task!'
+                                        }).takeover();
+                                    }
+                                    else{
+                                        return reply.continue();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                }
+            ],
+        },
+        handler: function (request, reply) {
+            // const {userid}=request.params;
+
+            const deleteOperation = knex('collaborator').where({
+                
+                    taskId1:request.params.taskid,
+                
+                }).delete({
+                    taskId1:request.params.taskid
+                     
+                }).then((res) => {
+                
+                    reply({
+                        message:"successfully deleted task!"
+                    });
+                
+                }).catch((err) =>{
+                    console.log(err);
+                    reply("server side error!");
+                });
+
+        }
+    },
 
 ]
 export default routes;

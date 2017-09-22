@@ -36,7 +36,7 @@ exports.up = function(knex, Promise) {
 			//primary key
 			taskComment.increments('id').primary();
 			//foreignkey connection
-			taskComment.integer( 'taskId', 20).unsigned().references( 'id' ).inTable('collaborator');
+			taskComment.integer( 'taskId', 20).unsigned().references( 'id' ).inTable('tasks');
 			//data
 			taskComment.text( 'commentText').notNullable();
 			//date
