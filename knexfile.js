@@ -11,9 +11,9 @@ module.exports = {
 				                host: 'localhost',
 
 				                user: 'root',
-				                password: 'shivam@jaancrush',
+				                password: 'aslam@desusa',
 
-				                database: 'asana',
+				                database: 'asanaproject',
 				                charset: 'utf8',
 
 				            }

@@ -3,8 +3,8 @@ export default require('knex')({
 	connection:{
 		host:'localhost',
 		user:'root',
-		password:'shivam@jaancrush',
-		database:'asana',
+		password:'aslam@desusa',
+		database:'asanaproject',
 		charset: 'utf8',
 	}
 });
