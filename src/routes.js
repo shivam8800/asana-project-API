@@ -555,5 +555,348 @@ const routes = [
         }
     },
 
+
+    // .>>>>>>>>>>>>>>>>>>>>>>>>>> kisi bhi task ke uper comment ko create karne ke liye 
+    {
+        method: 'POST',
+        path: '/createCommentOnTask/{userid}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre:[
+            {
+                method: ( request, reply ) =>{
+                    const { userid } = request.params
+                    const getOperation = knex('tasks').where({
+                        userid,
+                    }).select('taskText').then((result) =>{
+                        if (!result) {
+                            reply({
+                                error: true,
+                                errMessage: 'there is no found any text'
+                            }).takeover();
+                        }
+                        return reply.continue();
+                    });
+                }
+            }
+            ],
+        },
+        handler: function( request, reply ){
+            const {userid} = request.params;
+            // console.log(request.params.userid);
+            const getOperation = knex('tasks').where({
+                id:userid,
+            }).select('userid').then((result) =>{
+                if(!result || result.length === 0){
+                    reply({
+                        errMessage: 'there has no any user task',
+                    })
+                }
+                const insertOperation = knex('tasksComments').insert({
+                    taskId:request.params.userid,
+                    commentText: request.payload.commentText,
+                }).then((res) =>{
+                    reply({
+                        data: res,
+                        message: 'inserted comment successfully'
+                    });
+                }).catch((err) =>{
+                    console.log(err);
+                    reply('server-side error');
+                });
+            });
+        }   
+    },
+
+    // >>>>>>>>>>>>>>>>>>>>>>.......comment ko uski id se get karne ke liye
+    {
+        method: 'GET',
+        path: '/getusercomment/{id}',
+        handler: function(request, reply) {
+            const { id } = request.params
+            const getOperation = knex('tasksComments').where({
+                taskId:id
+            }).select('taskId', 'commentText', 'created_at').then((result) => {
+                if (!result || result.length === 0) {
+                    reply({
+                        error: true,
+                        errMessage: 'no comment has found',
+                    });
+                }
+                reply({
+                    data:result,
+                });
+
+            }).catch((err) => {
+                console.log(err);
+                reply('server-side error');
+            });
+        }
+    },
+    // >>>>>>>>>>>>>>>>>>>>>comment ko update karne ke liye
+    {
+        method: 'PUT',
+        path: '/updateComment/{id}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre: [
+            {
+                method: ( request, reply ) =>{
+                    const {id} = request.params;
+                    const getOperation = knex('tasksComments').where({
+                        id:id,
+                    }).select('commentText').then((result) =>{
+                        if(!result) {
+                            reply({
+                                error: true,
+                                errMessage: 'the task comment with id was not found'
+                            }).takeover();
+                        }
+                        return reply.continue();
+                    });
+                }
+            }
+            ],
+        },
+        handler: ( request, reply ) =>{
+            const insertOperation = knex('tasksComments').where({
+                id: request.params.id,
+            }).update({
+                commentText: request.payload.commentText,
+            }).then((res) =>{
+                reply({
+                    data: request.payload,
+                    message: ('apka comment update ho gaya hai')
+                });
+    
+            }).catch((err) =>{
+                console.log(err);
+                reply('server-side error');
+            });
+        } 
+    },
+
+
+    // >>>>>>>>>>>>>>>>> user ke comment ko delete karne ke liye task id se
+    {
+        method: 'DELETE',
+        path: '/deleteUserComment/{taskid}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre: [
+                {
+                    method: (request, reply) => {
+                        const {taskid} = request.params;
+                        const getOperation = knex('tasksComments').where({
+                            id:taskid,
+                        }).select('commentText').then(([result]) =>{
+                            if (!result) {
+                                reply({
+                                    error: true,
+                                    errMessage: 'yaha is id se koi bhi comment nahi hai'
+                                }).takeover();
+                            }
+                            return reply.continue();
+                        });
+                    }
+                }
+            ],
+        },
+        handler: (request, reply) =>{
+            const {taskid} = request.params;
+            const deleteOperation = knex('tasksComments').where({
+                id:taskid,
+            }).delete({
+                id:taskid
+            }).then((res) =>{
+                reply({
+                    message: "apka comment delete ho gaya hai!"
+                });
+            }).catch((err) =>{
+                console.log(err);
+                reply('server-side error');
+            });
+        }
+    },
+
+// >>>>>>>>> comment ke uper comment karne ke liye yah code likah hai
+
+    {
+        method: 'POST',
+        path: '/createNestedCommentOnComment/{taskid}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre:[
+            {
+                method: ( request, reply ) =>{
+                    const { taskid } = request.params
+                    const getOperation = knex('tasksComments').where({
+                        id:taskid,
+                    }).select('commentText').then((result) =>{
+                        if (!result) {
+                            reply({
+                                error: true,
+                                errMessage: 'there is no found any text'
+                            }).takeover();
+                        }
+                        return reply.continue();
+                    });
+                }
+            }
+            ],
+        },
+        handler: function( request, reply ){
+            const {taskid} = request.params;
+            const getOperation = knex('tasksComments').where({
+                id:taskid,
+            }).select('taskid').then((result) =>{
+                if(!result || result.length === 0){
+                    reply({
+                        errMessage: 'there has no any comment text',
+                    })
+                }
+                const insertOperation = knex('nestedComment').insert({
+                    taskCommentId:request.params.taskid,
+                    nestedcommentText: request.payload.nestedcommentText,
+                }).then((res) =>{
+                    reply({
+                        data: res,
+                        message: 'inserted nestedcomment successfully'
+                    });
+                }).catch((err) =>{
+                    console.log(err);
+                    reply('server-side error');
+                });
+            });
+        }   
+    },
+
+
+    // >>>>>>>>>>>>>>>>>>>>>>> task id se user ke comment ko get karne ke liye
+    {
+        method: 'GET',
+        path: '/getuserNestedcomment/{id}',
+        handler: function(request, reply) {
+            const { id } = request.params
+            const getOperation = knex('nestedComment').where({
+                taskCommentId:id
+            }).select('taskCommentId', 'nestedcommentText', 'created_at').then((result) => {
+                if (!result || result.length === 0) {
+                    reply({
+                        error: true,
+                        errMessage: 'no nestedComment has found',
+                    });
+                }
+                reply({
+                    data:result,
+                });
+
+            }).catch((err) => {
+                console.log(err);
+                reply('server-side error');
+            });
+        }
+    },
+
+
+    // >>>>>>>>>>>>>>>>>>>>>> yah nested comment ko update karne ke liye hai 
+    {
+        method: 'PUT',
+        path: '/updateNestedComment/{id}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre: [
+            {
+                method: ( request, reply ) =>{
+                    const {id} = request.params
+                    const getOperation = knex('nestedComment').where({
+                        id:id,
+                    }).select('nestedcommentText').then((result) =>{
+                        if(!result) {
+                            reply({
+                                error: true,
+                                errMessage: 'the task nested comment with id was not found'
+                            }).takeover();
+                        }
+                        return reply.continue();
+                    });
+                }
+            }
+            ],
+        },
+        handler: ( request, reply ) =>{
+            console.log(request.params.id);
+            const insertOperation = knex('nestedComment').where({
+                id:request.params.id,
+            }).update({
+                nestedcommentText: request.payload.nestedcommentText,
+            }).then((res) =>{
+                reply({
+                    data: request.payload,
+                    message: ('apka nested comment update ho gaya hai')
+                });
+    
+            }).catch((err) =>{
+                console.log(err);
+                reply('server-side error');
+            });
+        } 
+    },
+    // user k nested comment ko delete karne k liye ye code likha hia
+    {
+        method: 'DELETE',
+        path: '/deleteUserNestedComment/{id}',
+        config: {
+            auth: {
+                strategy: 'token',
+            },
+            pre: [
+                {
+                    method: (request, reply) => {
+                        const {id} = request.params;
+                        const getOperation = knex('nestedComment').where({
+                            id:id,
+                        }).select('nestedcommentText').then(([result]) =>{
+                            if (!result) {
+                                reply({
+                                    error: true,
+                                    errMessage: 'yaha is id se koi bhi nestedcomment nahi hai'
+                                }).takeover();
+                            }
+                            return reply.continue();
+                        });
+                    }
+                }
+            ],
+        },
+        handler: (request, reply) =>{
+            const {id} = request.params;
+            const deleteOperation = knex('nestedComment').where({
+                id:id,
+            }).delete({
+                id:id
+            }).then((res) =>{
+                reply({
+                    message: "apka nestedcomment delete ho gaya hai!"
+                });
+            }).catch((err) =>{
+                console.log(err);
+                reply('server-side error');
+            });
+        }
+    },
+
+
+
 ]
 export default routes;
